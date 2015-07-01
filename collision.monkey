@@ -173,96 +173,6 @@ Class CollisionInfo
 	Field BContained:Bool
 End
 
-#Rem
-Class Projection Extends Vector2D<Float> ' Final
-	' Constructor(s):
-	Method New()
-		Init()
-	End
-	
-	Method Init:Projection()
-		Min = 0.0
-		Max = 0.0
-		
-		' Return this object for pooling.
-		Return Self
-	End
-	
-	' Destructor(s):
-	Method Free:Projection()
-		'Return Init()
-		
-		Return Self
-	End
-	
-	' Methods:
-	Method ProjectToPoints:Projection(Axis:Vector2D<Float>, Points:Vector2D<Float>[])
-		Min = Axis.DotProduct(Points[0]); Max = Min
-		
-		For Local I:= 1 Until Points.Length()
-			' Local variable(s):
-			Local P:Float = Axis.DotProduct(Points[I])
-			
-			If (P < Min) Then
-				Min = P
-			Elseif (P > Max) Then
-				Max = P
-			Endif
-		Next
-		
-		' Now that we've calculated the 'interval', return this projection.
-		Return Self
-	End
-	
-	Method Overlap:Bool(P:Projection)
-		'If (Max > P.Min And P.Max > Min) Then Return True
-		
-		' This one works.
-		If (Max > P.Min And Min < P.Max) Then Return True
-		'If (lang.Max(Max, P.Max) > lang.Min(Min, P.Min)) Then Return True
-		
-		'If ((Min - P.Max) > 0) Then Return False
-		'If ((P.Min - Max) > 0) Then Return False
-		
-		'Return True
-		
-		' Return the default response.
-		Return False
-	End
-	
-	Method Enlarge:Float(Amount:Float)
-		Min -= Amount
-		Max += Amount
-		
-		Return Amount
-	End
-	
-	' Properties (Public):
-	Method Min:Float() Property
-		Return X
-	End
-	
-	Method Max:Float() Property
-		Return Y
-	End
-	
-	Method Min:Void(Input:Float) Property
-		X = Input
-		
-		Return
-	End
-	
-	Method Max:Void(Input:Float) Property
-		Y = Input
-		
-		Return
-	End
-	
-	' Fields:
-	' Nothing so far.
-End
-#End
-
 Class CollisionEngine
 	' Constant variable(s):
 	
@@ -284,13 +194,38 @@ Class CollisionEngine
 		Return ((X.X = 0.0) And (X.Y = 0.0))
 	End
 	
-	' Constructor(s):
+	' Constructor(s) (Public):
 	Method New(VectorCacheSize:Int=Default_VectorCacheSize, ResponseCacheSize:Int=Default_ResponseCacheSize)
+		Construct()
+		
 		Self.VectorPool = New Pool<Vector2D<Float>>(VectorCacheSize)
 		Self.ResponsePool = New Pool<CollisionInfo>(ResponseCacheSize)
-		
-		Self.CollisionAxes = New Stack<Vector2D<Float>>()
 	End
+	
+	Method New(VectorPool:Pool<Vector2D<Float>>, ResponseCacheSize:Int=Default_ResponseCacheSize)
+		Construct()
+		
+		Self.VectorPool = VectorPool
+		Self.ResponsePool = New Pool<CollisionInfo>(ResponseCacheSize)
+	End
+	
+	Method New(VectorPool:Pool<Vector2D<Float>>, ResponsePool:Pool<CollisionInfo>)
+		Construct()
+		
+		Self.VectorPool = VectorPool
+		Self.ResponsePool = ResponsePool
+	End
+	
+	' Constructor(s) (Protected):
+	Protected
+	
+	Method Construct:Void()
+		Self.CollisionAxes = New Stack<Vector2D<Float>>()
+		
+		Return
+	End
+	
+	Public
 	
 	' Methods (Public):
 	
